@@ -9,6 +9,20 @@
         "logs:PutLogEvents"
       ],
       "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeImages",
+        "ec2:CreateImage",
+        "ec2:DeregisterImage",
+        "ec2:DeleteSnapshot",
+        "ec2:DescribeSnapshots",
+        "ec2:DescribeTags",
+        "ec2:CreateTags"
+      ],
+      "Resource": "*"
     }
   ]
 }

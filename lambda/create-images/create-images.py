@@ -14,7 +14,7 @@ def handler(event={}, context={}):
     logger.info('pong')
     return {'message': 'pong'}
 
-    backer.run()
+  backer.run()
 
 # If being called locally, just call handler
 if __name__ == '__main__':

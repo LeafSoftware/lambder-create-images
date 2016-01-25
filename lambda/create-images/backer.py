@@ -120,4 +120,4 @@ class Backer:
       image = self.create_image(instance, name, description)
 
       # add backup source tag to image
-      image.create_tags(Tags=[{'Key': 'LambdaBackup', 'Value': source}])
+      image.create_tags(Tags=[{'Key': self.TAG_NAME, 'Value': source}])
