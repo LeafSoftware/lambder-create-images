@@ -5,7 +5,8 @@ import time
 from datetime import datetime
 
 class Backer:
-  TAG_NAME = "LambderBackup"
+  BACKUP_TAG = "LambderBackup"
+  REPLICATE_TAG = "LambderReplicate"
 
   def __init__(self):
     self.ec2 = boto3.resource('ec2')
@@ -17,7 +18,7 @@ class Backer:
       self.logger.info("instance id: {}".format(instance.id))
 
   def get_instances_to_backup(self):
-    filters = [{'Name':'tag-key', 'Values': [self.TAG_NAME]}]
+    filters = [{'Name':'tag-key', 'Values': [self.BACKUP_TAG]}]
     instances = self.ec2.instances.filter(Filters=filters)
     return instances
 
@@ -61,7 +62,7 @@ class Backer:
 
   # Takes an image or instance, returns the backup source
   def get_backup_source(self, resource):
-    tags = filter(lambda x: x['Key'] == self.TAG_NAME, resource.tags)
+    tags = filter(lambda x: x['Key'] == self.BACKUP_TAG, resource.tags)
 
     if len(tags) < 1:
       return None
@@ -70,7 +71,7 @@ class Backer:
 
   # return a Dict() of {backupsource: list_of_images}
   def get_images_by_backup_source(self):
-    filters = [{'Name':'tag-key', 'Values': [self.TAG_NAME]}]
+    filters = [{'Name':'tag-key', 'Values': [self.BACKUP_TAG]}]
     images = self.ec2.images.filter(Filters=filters)
 
     results = {}
@@ -122,4 +123,4 @@ class Backer:
       image = self.create_image(instance, name, description)
 
       # add backup source tag to image
-      image.create_tags(Tags=[{'Key': self.TAG_NAME, 'Value': source}])
+      image.create_tags(Tags=[{'Key': self.BACKUP_TAG, 'Value': source}])
