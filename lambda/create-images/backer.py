@@ -1,6 +1,7 @@
 import boto3
 import logging
 import pprint
+import time
 from datetime import datetime
 
 class Backer:
@@ -42,6 +43,7 @@ class Backer:
     snapshot_id = self.get_snapshot_for_image(image)
     snapshot = self.ec2.Snapshot(snapshot_id)
     image.deregister()
+    time.sleep(5) # HACK wait for image to deregister.
     snapshot.delete()
 
   # Takes a list of images (sorted oldest to newest),

@@ -5,7 +5,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 # logger.setLevel(logging.DEBUG)
 
-backer = Backer()
 
 # This is the method that will be registered
 # with Lambda and run on a schedule
@@ -14,6 +13,7 @@ def handler(event={}, context={}):
     logger.info('pong')
     return {'message': 'pong'}
 
+  backer = Backer()
   backer.run()
 
 # If being called locally, just call handler
