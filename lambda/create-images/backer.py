@@ -34,18 +34,20 @@ class Backer:
       NoReboot=no_reboot
     )
 
-  def get_snapshot_for_image(self, image):
+  def get_snapshots_for_image(self, image):
     devices = image.block_device_mappings
-    root_vol = filter(lambda x: x['DeviceName'] == '/dev/sda1', devices)[0]
-    return root_vol['Ebs']['SnapshotId']
+    ebs_devices = filter(lambda x: 'Ebs' in x, devices)
+    snapshots = map(lambda x: x['Ebs']['SnapshotId'], ebs_devices)
+    return snapshots
 
   # Deregister the ami, then delete the associated volume
   def delete_image(self, image):
-    snapshot_id = self.get_snapshot_for_image(image)
-    snapshot = self.ec2.Snapshot(snapshot_id)
+    snapshot_ids = self.get_snapshots_for_image(image)
     image.deregister()
     time.sleep(5) # HACK wait for image to deregister.
-    snapshot.delete()
+    for snapshot_id in snapshot_ids:
+      snapshot = self.ec2.Snapshot(snapshot_id)
+      snapshot.delete()
 
   # Takes a list of images (sorted oldest to newest),
   # and optional maximum number to keep.
