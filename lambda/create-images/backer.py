@@ -124,5 +124,11 @@ class Backer:
 
       image = self.create_image(instance, name, description)
 
-      # add backup source tag to image
-      image.create_tags(Tags=[{'Key': self.BACKUP_TAG, 'Value': source}])
+      # add backup source tag to image, carrying along REPLICATE_TAG if it exists
+      image_tags = [
+        {'Key': self.BACKUP_TAG, 'Value': source}
+      ]
+      replicate_tags = [x for x in instance.tags if x['Key'] == self.REPLICATE_TAG]
+      if replicate_tags:
+          image_tags.append({'Key': self.REPLICATE_TAG, 'Value': ''})
+      image.create_tags(Tags=image_tags)
