@@ -1,3 +1,4 @@
 .env
 **/*.pyc
 lambder.json
+lambda/create-images/config.json

@@ -2,16 +2,34 @@ import boto3
 import logging
 import pprint
 import time
+import os
+import os.path
+import json
 from datetime import datetime
 
 class Backer:
-  BACKUP_TAG = "LambderBackup"
+  BACKUP_TAG    = "LambderBackup"
   REPLICATE_TAG = "LambderReplicate"
+
+  ec2 = None
 
   def __init__(self):
     self.ec2 = boto3.resource('ec2')
     logging.basicConfig()
     self.logger = logging.getLogger()
+
+    # set location of config file
+    script_dir = os.path.dirname(__file__)
+    config_file = script_dir + '/config.json'
+
+    # if there is a config file in place, load it in. if not, bail.
+    if not os.path.isfile(config_file):
+      self.logger.error(config_file + " does not exist")
+      exit(1)
+    else:
+      config_data=open(config_file).read()
+      config_json = json.loads(config_data)
+      self.AWS_REGIONS=config_json['AWS_REGIONS']
 
   def list_all_instances(self):
     for instance in self.ec2.instances.all():
@@ -90,20 +108,26 @@ class Backer:
     return results
 
   def prune(self):
-    pp = pprint.PrettyPrinter()
-    images_by_source = self.get_images_by_backup_source()
+    for region in self.AWS_REGIONS:
+      self.logger.info("running in region " + region)
+      self.ec2 = boto3.resource('ec2', region_name=region)
+      pp = pprint.PrettyPrinter()
+      images_by_source = self.get_images_by_backup_source()
 
-    self.logger.debug('images_by_source: ' + pp.pformat(images_by_source))
+      self.logger.debug('images_by_source: ' + pp.pformat(images_by_source))
 
-    for source in images_by_source.keys():
-      all_backups = images_by_source[source]
-      to_delete = self.get_images_to_delete(all_backups)
+      for source in images_by_source.keys():
+        all_backups = images_by_source[source]
+        to_delete = self.get_images_to_delete(all_backups)
 
-      self.logger.debug('to_delete: ' + pp.pformat(to_delete))
+        self.logger.debug('to_delete: ' + pp.pformat(to_delete))
 
-      for condemned in to_delete:
-        self.logger.info("deleting " + condemned.name)
-        self.delete_image(condemned)
+        for condemned in to_delete:
+          self.logger.info("deleting " + condemned.name)
+          self.delete_image(condemned)
+
+      # set ec2 resource back to default region
+      self.ec2 = boto3.resource('ec2', region_name='us-east-1')
 
   def run(self):
     # prune old backups if needed
